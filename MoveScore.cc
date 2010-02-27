@@ -1,11 +1,25 @@
+/*
+ * Skip down to line ~500 for the actual tree-of-chambers
+ * move evaluation function.
+ *
+ * Note that I didn't start using the word 'chamber' until
+ * a few days after I wrote this code.  Therefore
+ * thoughout this code, the chambers are called 'Branches'.
+ */
 
 #include <vector>
 #include <deque>
 #include "MoveScore.h"
 
-
-const int CELL_QUE_CAPACITY = 2500;
+//NO LONGER USED.
+//Replaced with StepEvaluator::kMaxPathCalculationDepth.
 const int MAX_PATH_LENGTH = 1;
+
+/**
+ * My own implementation of Deque.  Don't quite remember
+ * why I did it, I stuck to std::deque everywhere else.
+ */
+const int CELL_QUE_CAPACITY = 2500;
 
 class CellIndexQue_ {
 public: 
@@ -72,12 +86,13 @@ TCellIndex CellIndexQue_::back() {
 void CellIndexQue_::pop_back() {
 	back_ = (back_ == 0 )? (CELL_QUE_CAPACITY - 1) : (back_ - 1);
 }
+//================== End of CellIndexQue_ =========================//
 
-//Matrixes used in temp calculations.
 typedef CellIndexQue_ CellIndexQue;
 typedef std::vector<TCell> CellStack;
 typedef std::vector<TCellIndex> CellIndexStack;
 
+//Matrixes used in temp calculations.
 bool* gTempGrid = NULL;
 TColor* gTempColorMatrix = NULL;
 short* gTempIntMatrix1 = NULL;
@@ -101,6 +116,9 @@ int g_distanceFromOpponent = 40;
 
 TBranch g_bFirstBranch = 0;
 
+/**
+ * Initialize the global variables above.
+ */
 void InitMoveScoreCalculator(const TCellIndex size, const TCellIndex width) {
 	g_iSize_ = size;
 	g_iWidth_ = width;
