@@ -1,3 +1,7 @@
+//I've left Map.h largely as it was, just added include guards.
+//I use Map.h/cpp only to get initial map and to update my and opponent's
+//positions; a copy of the map is maintained internally in StepEvaluator.
+
 // Map.h
 //
 // Handles the Tron map. Also handles communicating with the Tron game engine.

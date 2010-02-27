@@ -1,6 +1,14 @@
 // MyTronBot.cc
-//
-// This is the code file that you will modify in order to create your entry.
+
+/*
+ * The main entry point to the program.  No actual logic is kept here.
+ * 
+ * On every move, MakeMove sets timer, updates my/opponent's positions,
+ * and then proceeds to run calculations until out of time.
+ *
+ * Note TEST_ENVIRONMENT macro (defined in Timer.h) and ForceBreak()
+ * (defined in MoveScore.h).
+ */
 
 #include "Map.h"
 #include <string>
