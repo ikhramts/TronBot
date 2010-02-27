@@ -17,6 +17,20 @@
  * To avoiding memory bloat, every time me and opponent make a move,
  * branches of the Step tree that are no longer useful are removed
  * in StepEvaluator::updateMoves() and Step::advance().
+ *
+ * Individual steps were evaluated in one of two ways:
+ * (1) When separated from the opponent, or close to the opponent,
+ *		this was done using a 'tree of chambers' method to figure
+ *		out who controlled most territory.  Higer scores were
+ *		better for me, lower were better for opponent.
+ * (2) When far from the opponent, steps were evaluated by
+ *		playing the game forward using minimax at depth of 1
+ *		with the above evaluation function.  The game was played
+ *		forward until one of the bots died or the bots were
+ *		separated.  The final score was +inf/-inf/0 if one/both
+ *		of the bots died; otherwise it was the territory score
+ *		as mentioned above.  This method was named the 'Path'
+ *		method of evaluation.
  */
 
 #include "MoveScore.h"
