@@ -191,3 +191,14 @@ I've obviously omitted some of the details. That should be a decent
 starting point though.
 ========
 
+[4] Additional Reading
+======================
+
+- Iterative Deepening: http://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search
+- Minimax: http://en.wikipedia.org/wiki/Minimax
+- A paper on Articulation Verteces, didn't get to implementing it:
+	http://www.eecs.wsu.edu/~holder/courses/CptS223/spr08/slides/graphapps.pdf
+- The Chessboard Problem: http://en.wikipedia.org/wiki/Mutilated_chessboard_problem
+	It's not directly related, but thinking in terms of red/black squares lets
+	one figure out whether an area can be fully covered by a path.
+	Didn't have time to implement it, unfortunately.
