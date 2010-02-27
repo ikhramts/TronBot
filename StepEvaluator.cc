@@ -1,3 +1,6 @@
+/*
+ * See StepEvaluator.h for explanations.
+ */
 
 #include <vector>
 #include <deque>
@@ -669,6 +672,9 @@ Step::~Step() {
 	//Nothing left to clean up.
 }
 
+/**
+ * Set the result of evaluating the step.  Is used in StepEvaluator::performEvaluations().
+ */
 void Step::setScore(TMoveScore score) {
 	score_ = score;
 	parent_->updateChildStepScore(score, idInParent_);
@@ -681,7 +687,11 @@ void Step::removeFromEvaluationQue() {
 		stepEvaluator_->freeStep(this);
 	}
 }
-
+/** 
+ * Me and opponent have made new moves.  Set the new
+ * root of the tree of Step objects, and remove
+ * all branches that are no longer under consideration.
+ */
 Step* Step::advance(const int myDirection, const int opponentDirection) {
 	Step* newRootStep = NULL;
 	
@@ -715,6 +725,9 @@ Step* Step::advance(const int myDirection, const int opponentDirection) {
 	return newRootStep;
 }
 
+/**
+ * Decides wich moves from the current position are acceptable.
+ */
 std::vector<bool> Step::getBestDirections() {
 	//Initialize the possible moves that can be made.
 	std::vector<bool> availableDirections;
@@ -847,6 +860,10 @@ std::vector<bool> Step::getBestDirections() {
 	return availableDirections;
 }
 
+/**
+ * Make this Step object create child step objects, effectively
+ * exploring this branch of Steps further.
+ */
 void Step::branch() {
 	//Create and initialize child steps.  Add all child steps to the
 	//evaluation que.
@@ -919,6 +936,9 @@ void Step::unlink() {
 	}
 }
 
+/**
+ * A way for child to notify the parent that it has a new move score.
+ */
 void Step::updateChildStepScore(const TMoveScore score, const int childId) {
 	const TMoveScore oldChildScore = childScores_[childId];
 	childScores_[childId] = score;
@@ -1020,6 +1040,13 @@ void Step::updateChildStepScore(const TMoveScore score, const int childId) {
 	}
 }
 
+/**
+ * Order the moves from the most interesting to the
+ * least interesting.
+ * 
+ * Exclude non-interesting moves.
+ * NOTE: NO LONGER USED.
+ */
 void Step::sortChildrenByInterest() {
 	//Order children from the most interesting ones to the
 	//least interesting ones.

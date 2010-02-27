@@ -1,3 +1,23 @@
+/*
+ * The two classes defined here are responsible for traversal of
+ * the tree of possible moves through iterative deepening.  
+ * 
+ * Class Step implements the actual tree of the moves and contains
+ * logic for updating and manipulating that tree.  In particular,
+ * it contains logic that decides which moves should be explored
+ * further, and how to remove the branches that are no longer
+ * useful.
+ *
+ * Class StepEvaluator contains a queue of Step objects to be evaluated,
+ * and a heap of recycled Step objects.  It also provides easier 
+ * outside access to the results computed by the tree of Steps.
+ *
+ * The tree of Steps is kept between MakeMove() invocations
+ * in MyTronBot.cc to avoid recomputing the same thing over and over.
+ * To avoiding memory bloat, every time me and opponent make a move,
+ * branches of the Step tree that are no longer useful are removed
+ * in StepEvaluator::updateMoves() and Step::advance().
+ */
 
 #include "MoveScore.h"
 #include <list>
@@ -22,19 +42,38 @@ public:
 	Step(StepEvaluator* stepEvaluator);
 	~Step();
 	void initialize(TCellIndex iMe, TCellIndex iOpponent, Step* parent, int idInParent);
-
+	
 	Step* getParent()				{ return parent_;}
-
+	
 	bool isInStepTree() const			{ return isInStepTree_;}
 	bool isInEvaluationQue() const		{ return isInEvaluationQue_;}
+	
+	/**
+	 * Set the result of evaluating the step.  Is used in StepEvaluator::performEvaluations().
+	 */
 	void setScore(TMoveScore score);
+	
 	TMoveScore getScore() const			{ return score_; }
+	
 	void setPlacedInQue()				{ isInEvaluationQue_ = true;}
 	void removeFromEvaluationQue();
+	
+	/**
+	 * Indicates whether no further exploration of this branch of steps is
+	 * possible.  Occurs when one/both of the players run into a wall.
+	 */
 	void setDeadEnd(bool deadEnd)		{ isDeadEnd_ = deadEnd;}
-
+	
+	/** 
+	 * Me and opponent have made new moves.  Set the new
+	 * root of the tree of Step objects, and remove
+	 * all branches that are no longer under consideration.
+	 */
 	Step* advance(int myDirection, int opponentDirection);
-
+	
+	/**
+	 * Decides wich moves from the current position are acceptable.
+	 */
 	std::vector<bool> getBestDirections();
 	
 	TCellIndex getMyPosition() const			{return iMe_;}
@@ -42,13 +81,15 @@ public:
 	TCellIndex getPrevMyPosition() const		{return parent_->iMe_;}
 	TCellIndex getPrevOpponentPosition() const	{return parent_->iOpponent_;}
 	
+	//Switches for near/far/separated strategies.
 	bool isFarFromOpponent() const				{return isFarFromOpponent_;}
 	void setFarFromOpponent(bool far)			{isFarFromOpponent_ = far;}
 	bool isSeparatedFromOpponent() const		{return isSeparatedFromOpponent_;}
 	void setSeparatedFromOpponent(bool isSep)	{isSeparatedFromOpponent_ = isSep;}
 
 	/**
-	 * Evaluate this step's next steps.
+	 * Make this Step object create child step objects, effectively
+	 * exploring this branch of Steps further.
 	 */
 	void branch();
 
@@ -58,8 +99,10 @@ public:
 	bool isRootStep() const						{return (parent_ == NULL);}
 
 	bool hasChildren() const					{ return (children_.size() > 0);}
+
+	//Depth of this step, from the very first position (not from the current root step).
 	int getDepth() const						{ return depth_;}
-	void setDepth(int depth)						{ depth_ = depth;}
+	void setDepth(int depth)					{ depth_ = depth;}
 private:
 	
 	/**
@@ -68,7 +111,7 @@ private:
 	void unlink();
 	
 	/**
-	 * Get updated step score from the child.
+	 * A way for child to notify the parent that it has a new move score.
 	 */
 	void updateChildStepScore(TMoveScore score, int childId);
 	
@@ -77,6 +120,7 @@ private:
 	 * least interesting.
 	 * 
 	 * Exclude non-interesting moves.
+	 * NOTE: NO LONGER USED.
 	 */
 	void sortChildrenByInterest();
 	
@@ -113,12 +157,30 @@ private:
  */
 class StepEvaluator {
 public:
+	/*
+	 * General settings.
+	 */
+	//May not explore farther than this many steps from the root step.
+	//Effectively no longer used.
 	static const int kDepthLimit = 100;
+
+	//Maximum path length for the path evaluation method.
 	static const int kMaxPathCalculationDepth = 50;
+
+	//Do not explore moves that cause this much drop/increace in
+	//relative move score.  We assume that neither me nor opponent
+	//will make moves that will cause sudden drop of the bot's fortune.
 	static const int kScoreChangeCutoff = 25; //in percent.
+
+	//Notwithstanding what's written immediately above, explore
+	//the possible moves to the fullest when there are at most
+	//this many cells left.
 	static const int kMinCellsForScoreChangeCutoff = 10;
+
+	//Switch to 'near' strategy when closer than this to opponent.
 	static const int kMinFarDistance = 6;
 
+	//Constructor/destructor.
 	StepEvaluator ();
 	~StepEvaluator();
 
@@ -145,7 +207,9 @@ public:
 
 	int getBestMove() const;
 	
-	//Add a step to the list of steps to be evaluated.
+	/**
+	 * Add step to the queue of steps to be evaluated.
+	 */
 	void addStepToQue(Step* step);
 
 	TCell* getCells()		{return cCells_;}
@@ -179,36 +243,40 @@ public:
 	short getNumCellsRemaining() const		{return numCellsRemaining_;}
 
 private:
+	//Internal copy of the map
+	//TCellm TCellIndex, etc are defined in MoveScore.h
 	TCell* cCells_;
 	TCellIndex iWidth_;
 	TCellIndex iSize_;
-
+	
 	TCellIndex iMe_;
 	TCellIndex iOpponent_;
 	short numCellsRemaining_;
-
+	
+	//The root step in the step tree.
 	Step* rootStep_;
 
 	EvaluationQue evaluationQue_;
 	std::deque<Step*> freeSteps_;
 
-	//To be reused in calculations.
+	//To be reused in calculations to avoid reallocating large arrays.
 	std::vector<TCellIndex> removedCellIndexes_;
 	std::vector<TCell> removedCells_;
 	
 	//Que of steps that haven't finished branching
 	//because there was not enough memory.
+	//NO LONGER USED.
 	std::deque<Step*> branchingQue_;
-	int numEvaluations_;
 
 	//General interest.
+	int numEvaluations_;
 	int maxDepth_;
 
 	//Current depth
 	int currentDepth_;			//Step number starting from the first step.
 
 	//Temporary placeholders for path scoring
-	//calculations.
+	//calculations.  Created once to avoid reallocating large arrays.
 	TCell* removedPathCells_;
 	TCellIndex* removedPathCellIndexes_;
 };
