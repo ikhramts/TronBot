@@ -1,5 +1,11 @@
 #include "Timer.h"
 
+/*
+ * Two separate implementations.  A Linux implementation uses gettimeofday(),
+ * which is the actual method of timing the contest entry.  Unfortunately, 
+ * that is not available on Windows, so for testing on my computer I use clock().
+ */
+
 #ifdef TEST_ENVIRONMENT
 	#include <iostream>
 
