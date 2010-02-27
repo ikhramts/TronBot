@@ -1,4 +1,16 @@
-
+/*
+ * This file defines basic types for that represent individual
+ * cells on the map, branches in a tree of chambers, etc.
+ * 
+ * Also it defines functions for updating the map and
+ * evaluating the tree-of-chambers score.
+ * 
+ * The internal representation of the map was kept in an
+ * array of TCells with length=width*height).  Originally
+ * I kept track of the number of open cells surrounding
+ * each cell (the "edges"), but this was later discontinued.
+ * Pieces of code dealing with this still exist.
+ */
 #ifndef MOVE_SCORE_H_
 #define MOVE_SCORE_H_
 
@@ -7,6 +19,10 @@
 #endif
 
 /* Movement directions. */
+/* Note: often in code I actually use 0-based directions, 
+   where 0=up, 1=right, etc.  It should be evident from
+   the context where this happens.
+*/
 const int NO_DIRECTION = 0;		//Used when a strategy cannot decide which direction to move into.
 const int UP = 1;
 const int RIGHT = 2;
@@ -14,6 +30,7 @@ const int DOWN = 3;
 const int LEFT = 4;
 
 /* Indicates that the cell cannot be reached. */
+//NO LONGER USED.
 const int TOO_FAR = 10000;
 const short OPPONENT_SEPARATED = -1;
 
@@ -22,7 +39,7 @@ typedef short TMoveScore;
 
 const TMoveScore VERY_BAD = -10000;
 const TMoveScore VERY_GOOD = 10000;
-const TMoveScore CUTOFF_BONUS = 0;
+const TMoveScore CUTOFF_BONUS = 0;	//No longer used.
 
 /* Indexing cells */
 typedef int TCellIndex;
@@ -134,7 +151,7 @@ void InitMoveScoreCalculator(TCellIndex size, TCellIndex width);
 //short GetOpponentDistance(TCell* cCells, TCellIndex iMe, TCellIndex iOpponent);
 
 /**
- * Calculate the score for a move.
+ * Calculate the score for a move using the tree-of-chambers method.
  * 
  * The score for the move is
  * (#cells fillable by me) - (# cells fillable by opponent).
@@ -148,15 +165,23 @@ TMoveScore GetCellBalance(TCell* cCells,
 
 /**
  * Check whether the bots were separated during the previous 
- * evaluation, i.e. whether one bot could not possibly have entered
- * territory of another bot.
+ * evaluation of GetCellBalance, i.e. whether one bot could 
+ * not possibly have entered territory of another bot.
  */
 bool WereBotsSeparated();
+
+/**
+ * Get the approximate distance (+/- 2 steps) to the opponent
+ * during the last invocation of GetCellBalance().  Is valid
+ * only if the bots aren't separated.
+ */
 int LastDistanceToOpponent();
 
 /**
  * Attempt to calculate the longest possible path each of the 
  * players can create.
+ *
+ * NOTE: WAS MOVED TO StepEvaluator.
  */
 TMoveScore GetPathScore(TCell* cCells, 
 				   TCellIndex iMe, 
@@ -169,11 +194,13 @@ void ForceBreak();
 
 /** 
  * Sort a vector based on values in another vector.
+ * NO LONGER USED.
  */
 void SortIndexes(std::vector<char>& indexes, const std::vector<TMoveScore>& values, bool ascending);
 
 /** 
  * Sort a subset of vector based on values in another vector.
+ * NO LONGER USED.
  */
 void SortIndexRange(std::vector<char>& indexes, 
 					const std::vector<TMoveScore>& values,
